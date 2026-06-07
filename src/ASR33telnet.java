@@ -52,10 +52,6 @@ public class ASR33telnet implements TermContainer, Runnable {
 	
 		String s;
 		for (String arg : args) {
-			File f = new File(arg);
-			if (f.exists()) {
-				continue;
-			}
 			if (arg.indexOf("=") >= 0) {
 				String[] ss = arg.split("=", 2);
 				props.setProperty("asr33_" + ss[0], ss[1]);
@@ -67,11 +63,9 @@ public class ASR33telnet implements TermContainer, Runnable {
 		}
 		if (host == null) {
 			s = props.getProperty("asr33_host");
-			if (s == null) {
-				System.err.format("Usage: ASR33telnet [conf] host [port]\n");
-				System.exit(1);
+			if (s != null) {
+				host = s;
 			}
-			host = s;
 		}
 		if (port <= 0) {
 			s = props.getProperty("asr33_port");
@@ -80,6 +74,10 @@ public class ASR33telnet implements TermContainer, Runnable {
 			} else {
 				port = 23;	// standard telnet port
 			}
+		}
+		if (host == null) {
+			System.err.format("Usage: ASR33telnet host [port]\n");
+			System.exit(1);
 		}
 		//System.err.format("ASR33telnet %s %d\n", host, port);
 		server = (props.getProperty("asr33_server") != null);

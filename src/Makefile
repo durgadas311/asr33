@@ -25,7 +25,7 @@ CORE_CLASS = ASR33.class \
 
 SUB_CLASS = 'PaperTapePositioner$$PaperTape.class'
 
-JARS = ASR33telnet.jar ASR33plugin.jar
+JARS = ASR33telnet.jar ASR33tty.jar ASR33plugin.jar
 
 AUXS = $(wildcard doc/*) $(wildcard fonts/*.ttf) $(wildcard *.wav)
 

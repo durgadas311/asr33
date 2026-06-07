@@ -1,0 +1,4 @@
+[submodule "src/jserialcomm"]
+	path = src/jserialcomm
+	url = https://github.com/durgadas311/jserialcomm.git
+	branch = master
