@@ -6,19 +6,20 @@
 JSERIAL = jserialcomm/jSerialComm-2.9.3.jar
 
 # For the plugin, these must come from the parent
+# (shared classes, don't duplicate in plugin)
 SIM_CLASS = GenericHelp.class \
 	SimResource.class \
 	ExtBoolean.class \
-	ParityGenerator.class
+	ParityGenerator.class \
+	SuffFileChooser.class \
+	SuffFileFilter.class
 
 CORE_CLASS = ASR33.class \
 	ASR33Reader.class \
 	BlockCaret.class \
-	PaperTapePositioner.class \
 	TermContainer.class \
 	RdrContainer.class \
-	SuffFileChooser.class \
-	SuffFileFilter.class \
+	PaperTapePositioner.class \
 	Bell.class \
 	Paster.class \
 	Typer.class
