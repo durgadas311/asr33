@@ -27,18 +27,9 @@ public class ASR33telnet implements TermContainer, Runnable {
 	private static final int OPTION_YES = 1;
 
 	public ASR33telnet(String[] args) {
-		// First existing file in args is config file...
+		// Args may be prop=value expressions.
 		// Other args are host and optional port...
-		String rc = System.getenv("ASR33_CONFIG");
-		if (rc == null) {
-			File f = new File("./asr33rc");
-			if (f.exists()) {
-				rc = f.getAbsolutePath();
-			}
-		}
-		if (rc == null) {
-			rc = System.getProperty("user.home") + "/.asr33rc";
-		}
+		String rc = ASR33.getConfig(args);
 		Properties props = new Properties();
 		try {
 			FileInputStream cfg = new FileInputStream(rc);

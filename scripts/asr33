@@ -6,6 +6,6 @@
 # Assumes that https://github.com/durgadas311/asr33.git was cloned
 # into ${HOME}/git. Adjust paths if you use a different location.
 
-JAR1=${HOME}/git/adm3a/ASR33telnet.jar
+JAR1=${HOME}/git/asr33/ASR33telnet.jar
 
 exec java -jar ${JAR1} "${@}"

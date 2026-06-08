@@ -24,6 +24,7 @@ CORE_CLASS = ASR33.class \
 	Paster.class \
 	Typer.class
 
+# These are non-shared classes - are required for plugin
 SUB_CLASS = 'PaperTapePositioner$$PaperTape.class'
 
 JARS = ASR33telnet.jar ASR33tty.jar ASR33plugin.jar
@@ -50,7 +51,7 @@ ASR33tty.jar: ASR33tty.class $(CORE_CLASS) $(SIM_CLASS) $(AUXS) $(JSERIAL)
 
 # Need to exclude ASR33telnet.class...
 ASR33plugin.jar: $(CORE_CLASS) $(AUXS)
-	jar -cMf $@ $^
+	jar -cMf $@ $^ $(SUB_CLASS)
 
 ship: jar
 	cp $(JARS) ..

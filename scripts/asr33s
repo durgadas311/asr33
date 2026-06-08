@@ -7,7 +7,7 @@
 # Assumes that https://github.com/durgadas311/asr33.git was cloned
 # into ${HOME}/git. Adjust paths if you use a different location.
 
-JAR1=${HOME}/git/adm3a/ASR33tty.jar
-JAR2=${HOME}/git/adm3a/src/jserialcomm/jSerialComm-2.9.3.jar
+JAR1=${HOME}/git/asr33/ASR33tty.jar
+JAR2=${HOME}/git/asr33/src/jserialcomm/jSerialComm-2.9.3.jar
 
 exec java -cp ${JAR1}:${JAR2} ASR33tty "${@}"

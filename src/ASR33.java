@@ -65,8 +65,6 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	static final String[] spins = new String[]{ "/", "\u2013", "\\", "|" };
 
 	byte[] ansbak;
-	int paste_delay;
-	int paste_cr_delay;
 	int rdr_view;
 	ASR33Reader reader;
 	Paster paster;
@@ -84,13 +82,25 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	boolean col72_bell;
 	int lines;
 
+	public static String getConfig(String[] args) {
+		String rc = System.getenv("ASR33_CONFIG");
+		if (rc == null) {
+			File f = new File("./asr33.rc");
+			if (f.exists()) {
+				rc = f.getAbsolutePath();
+			}
+		}
+		if (rc == null) {
+			rc = System.getProperty("user.home") + "/.asr33rc";
+		}
+		return rc;
+	}
+
 	public ASR33(Properties props, TermContainer fe) {
 		super(title + " - " + fe.getTitle());
 		this.fe = fe;
 		idev = fe.getInputStream();
 		odev = fe.getOutputStream();
-		paste_delay = 100; // mS, 10 char/sec
-		paste_cr_delay = 1000; // mS, wait after CR
 		rdr_adv_char = RDR;
 		paster = new Paster(props, "asr33", this);
 		reader = new ASR33Reader(props, "asr33", this, this);
@@ -102,14 +112,6 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 
 		String s = props.getProperty("asr33_ansbak");
 		setAnswerBack(s);
-		s = props.getProperty("asr33_delay");
-		if (s != null) {
-			paste_delay = Integer.valueOf(s);
-		}
-		s = props.getProperty("asr33_cr_delay");
-		if (s != null) {
-			paste_cr_delay = Integer.valueOf(s);
-		}
 		s = props.getProperty("asr33_rdr_adv_char");
 		if (s == null) {
 			s = props.getProperty("tty_rdr_adv_char");
@@ -174,7 +176,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		if (s != null) col72_bell = ExtBoolean.parseBoolean(s);
 
 		java.net.URL url;
-		url = this.getClass().getResource("asr33_doc/help.html");
+		url = this.getClass().getResource("doc/help.html");
 		_help = new GenericHelp("ASR33 Teletype Help", url);
 
 		setLayout(new BorderLayout()); // allow resizing

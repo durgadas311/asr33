@@ -28,18 +28,9 @@ public class ASR33tty implements TermContainer {
 	private static final int OPTION_YES = 1;
 
 	public ASR33tty(String[] args) {
-		// First existing file in args is config file...
+		// Args may be prop=value expressions.
 		// Other args are tty and optional baud...
-		String rc = System.getenv("ASR33_CONFIG");
-		if (rc == null) {
-			File f = new File("./asr33rc");
-			if (f.exists()) {
-				rc = f.getAbsolutePath();
-			}
-		}
-		if (rc == null) {
-			rc = System.getProperty("user.home") + "/.asr33rc";
-		}
+		String rc = ASR33.getConfig(args);
 		Properties props = new Properties();
 		try {
 			FileInputStream cfg = new FileInputStream(rc);
