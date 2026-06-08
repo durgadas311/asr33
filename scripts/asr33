@@ -1,0 +1,11 @@
+#!/bin/bash
+# An example of how to run the Virtual ASR33 Teletype on a socket.
+#
+# Usage: asr33 <host> <port>
+#
+# Assumes that https://github.com/durgadas311/asr33.git was cloned
+# into ${HOME}/git. Adjust paths if you use a different location.
+
+JAR1=${HOME}/git/adm3a/ASR33telnet.jar
+
+exec java -jar ${JAR1} "${@}"
