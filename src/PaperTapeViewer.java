@@ -21,8 +21,10 @@ class PaperTapeViewer extends JPanel {
 	int td;
 	Polygon head, hp;
 	Polygon tail, tp;
+	boolean noTail;
 
-	private void setup(int zone, int size, boolean top) {
+	private void setup(int zone, int size, boolean top, boolean noTail) {
+		this.noTail = noTail;
 		cell = (int)Math.round((float)size / 10f);
 		data = (int)Math.round(0.72f * (float)cell);
 		sprk = (int)Math.round(0.46f * (float)cell);
@@ -56,17 +58,17 @@ class PaperTapeViewer extends JPanel {
 		update(0, 0);
 	}
 
-	public PaperTapeViewer(int zone) {
+	public PaperTapeViewer(int zone, boolean noTail) {
 		super();
 		// "standard" size, tape width 150 pixels
-		setup(zone, 150, false);
+		setup(zone, 150, false, noTail);
 	}
 
 	// 'size' is desired width of tape in pixels.
 	// 'top' true to place cursor at top, for punch.
-	public PaperTapeViewer(int zone, int size, boolean top) {
+	public PaperTapeViewer(int zone, int size, boolean top, boolean noTail) {
 		super();
-		setup(zone, size, top);
+		setup(zone, size, top, noTail);
 	}
 
 	public void update(int _beg, int _end) {
@@ -98,7 +100,7 @@ class PaperTapeViewer extends JPanel {
 		if (t + td < tapeh) {
 			g2d.fillPolygon(hp);
 		}
-		if (td > 0 && t > 0) {
+		if (!noTail && td > 0 && t > 0) {
 			g2d.fillPolygon(tp);
 		}
 		g2d.setColor(Color.red); // cursor - fixed position

@@ -14,10 +14,23 @@ public class PaperTapePositioner extends JFrame
 	long savedFP;
 	int idx;
 	int tot;
+	boolean noSeek;
 
 	public PaperTapePositioner(WindowListener lstr, RandomAccessFile tape, int zone,
 				Component friend) {
 		super("PTR");
+		setup(lstr, tape, zone, friend, false, false);
+	}
+
+	public PaperTapePositioner(WindowListener lstr, RandomAccessFile tape, int zone,
+			Component friend, String name, boolean noSeek, boolean noTail) {
+		super(name);
+		setup(lstr, tape, zone, friend, noSeek, noTail);
+	}
+
+	private void setup(WindowListener lstr, RandomAccessFile tape, int zone,
+			Component friend, boolean noSeek, boolean noTail) {
+		this.noSeek = noSeek;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // ...or live view?
 		setResizable(false);
 		setLocationByPlatform(true);
@@ -37,7 +50,7 @@ public class PaperTapePositioner extends JFrame
 			System.exit(1);
 		}
 		idx = -1;	// never equals savedFP
-		ptv = new PaperTapeViewer(zone);
+		ptv = new PaperTapeViewer(zone, noTail);
 		add(ptv);
 		addKeyListener(this);
 		addMouseWheelListener(this);
@@ -89,6 +102,9 @@ public class PaperTapePositioner extends JFrame
 			_idx = tot - 1;;
 		} else if (c == KeyEvent.VK_ENTER) {
 			dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+		} else if (c == KeyEvent.VK_DELETE) {
+			noSeek = true;
+			dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
 		} else {
 			return;
 		}
@@ -114,6 +130,9 @@ public class PaperTapePositioner extends JFrame
 	public void windowDeiconified(WindowEvent e) { }
 	public void windowDeactivated(WindowEvent e) { }
 	public void windowClosing(WindowEvent e) {
+		if (noSeek) {
+			idx = (int)savedFP;
+		}
 		try {
 			tape.seek(idx);
 		} catch (Exception ee) {}

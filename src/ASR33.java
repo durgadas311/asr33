@@ -343,8 +343,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		gc.gridwidth = 1;
 		gc.gridheight = 1;
 		gc.anchor = GridBagConstraints.CENTER;
-		pun_vu = new PaperTapeViewer(8, 100, true);
-		rdr_vu = new PaperTapeViewer(8, 100, false);
+		pun_vu = new PaperTapeViewer(8, 100, true, false);
+		rdr_vu = new PaperTapeViewer(8, 100, false, false);
 		JLabel lb = new JLabel("Punch:");
 		lb.setOpaque(true);
 		lb.setPreferredSize(new Dimension(120, 20));
