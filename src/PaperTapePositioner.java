@@ -66,8 +66,7 @@ public class PaperTapePositioner extends JFrame
 			tape.seek(pos);
 			tape.read(ptv.tapeBuf, _beg, _end - _beg);
 			idx = newIdx;
-			ptv.beg = _beg;
-			ptv.end = _end;
+			ptv.update(_beg, _end);
 			repaint();
 		} catch (Exception ee) {}
 	}
