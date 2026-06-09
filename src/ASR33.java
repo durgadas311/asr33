@@ -350,11 +350,13 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		gc.gridwidth = 1;
 		gc.gridheight = 1;
 		gc.anchor = GridBagConstraints.CENTER;
-		pun_vu = new PaperTapeViewer(8, 100, true, false);
-		rdr_vu = new PaperTapeViewer(8, 100, false, false);
+		int vu_wid = 80;
+		int vu_hei = 10;
+		pun_vu = new PaperTapeViewer(vu_hei, vu_wid, true, false);
+		rdr_vu = new PaperTapeViewer(vu_hei, vu_wid, false, false);
 		JLabel lb = new JLabel("Punch:");
 		lb.setOpaque(true);
-		lb.setPreferredSize(new Dimension(120, 20));
+		lb.setPreferredSize(new Dimension(vu_wid + pun_vu.marg, 20));
 		gb.setConstraints(lb, gc);
 		add(lb);
 		++gc.gridy;
@@ -363,7 +365,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		++gc.gridy;
 		lb = new JLabel("Reader:");
 		lb.setOpaque(true);
-		lb.setPreferredSize(new Dimension(120, 20));
+		lb.setPreferredSize(new Dimension(vu_wid + rdr_vu.marg, 20));
 		gb.setConstraints(lb, gc);
 		add(lb);
 		++gc.gridy;
@@ -372,7 +374,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		gc.gridy = 0;
 		++gc.gridx;
 		JPanel pan = new JPanel();
-		pan.setPreferredSize(new Dimension(10, 10));
+		pan.setPreferredSize(new Dimension(5, 10));
 		pan.setOpaque(false);
 		gb.setConstraints(pan, gc);
 		add(pan);
@@ -382,7 +384,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		add(scroll);
 		++gc.gridx;
 		pan = new JPanel();
-		pan.setPreferredSize(new Dimension(10, 10));
+		pan.setPreferredSize(new Dimension(5, 10));
 		pan.setOpaque(false);
 		gb.setConstraints(pan, gc);
 		add(pan);
@@ -907,6 +909,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			}
 			try {
 				pun_out = new RandomAccessFile(file, "rw");
+				pun_out.setLength(0);
 				pun_mi.setText("Punch - " + file.getName());
 				pun.setEnabled(true);
 				pun_cnt.setText("   0");

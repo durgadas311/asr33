@@ -9,14 +9,15 @@ class PaperTapeViewer extends JPanel {
 	int data = 11;	// @0.072/0.1 = 10.8/15
 	int sprk = 7;	// @0.046/0.1 = 6.9/15
 	public byte[] tapeBuf;
-	public int win;
-	public int buf;
+	public int win; // read-only
+	public int buf; // read-only
 	public int beg;	// use update(beg, end) to change
 	public int end;	// use update(beg, end) to change
 	int tapew;
 	int tapeh;
-	int marg;
+	public int marg; // read-only
 	int curs;
+	Color curs_color = Color.red;
 	int l, t, b, bb, m;	// for paint()
 	int td;
 	Polygon head, hp;
@@ -34,6 +35,7 @@ class PaperTapeViewer extends JPanel {
 		tapew =  10 * cell;
 		tapeh = win * cell;
 		if (top) {
+			curs_color = Color.green;
 			curs = 0;
 		} else {
 			curs = buf * cell;
@@ -103,7 +105,7 @@ class PaperTapeViewer extends JPanel {
 		if (!noTail && td > 0 && t > 0) {
 			g2d.fillPolygon(tp);
 		}
-		g2d.setColor(Color.red); // cursor - fixed position
+		g2d.setColor(curs_color); // cursor - fixed position
 		g2d.drawRect(0, curs, tapew + marg - 1, cell);
 		g2d.setColor(Color.black);
 		// draw tapeBuf backwards... End is at top...
