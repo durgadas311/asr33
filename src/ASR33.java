@@ -60,6 +60,10 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	JMenuItem rdr_pos;
 	OutputStream pun_out;
 	RandomAccessFile rdr_in;
+	PaperTapeViewer rdr_vu;
+	long rdr_idx;
+	long rdr_tot;
+	PaperTapeViewer pun_vu;
 	JLabel spinner;
 	int spinning;
 	static final String[] spins = new String[]{ "/", "\u2013", "\\", "|" };
@@ -179,7 +183,6 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		url = this.getClass().getResource("doc/help.html");
 		_help = new GenericHelp("ASR33 Teletype Help", url);
 
-		setLayout(new BorderLayout()); // allow resizing
 		text = new JTextArea(lines, 81); // a little wider for breathing room
 		text.setEditable(false); // this prevents caret... grrr.
 		text.setBackground(Color.white);
@@ -192,7 +195,13 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		scroll = new JScrollPane(text);
 		scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		add(scroll, BorderLayout.CENTER); // allow resizing
+		if (props.getProperty("asr33_live_ppt") != null) {
+			liveView();
+		} else {
+			// simple layout, printer only
+			setLayout(new BorderLayout()); // allow resizing
+			add(scroll, BorderLayout.CENTER); // allow resizing
+		}
 
 		JMenuBar mb = new JMenuBar();
 		JMenu mu = new JMenu("Print");
@@ -320,6 +329,56 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		setLocationByPlatform(true);
 
 		restart();
+	}
+
+	private void liveView() {
+		GridBagLayout gb = new GridBagLayout();
+		setLayout(gb);
+		GridBagConstraints gc = new GridBagConstraints();
+		gc.fill = GridBagConstraints.NONE;
+		gc.gridx = 0;
+		gc.gridy = 0;
+		gc.weightx = 0;
+		gc.weighty = 0;
+		gc.gridwidth = 1;
+		gc.gridheight = 1;
+		gc.anchor = GridBagConstraints.CENTER;
+		pun_vu = new PaperTapeViewer(8, 100, true);
+		rdr_vu = new PaperTapeViewer(8, 100, false);
+		JLabel lb = new JLabel("Punch:");
+		lb.setOpaque(true);
+		lb.setPreferredSize(new Dimension(120, 20));
+		gb.setConstraints(lb, gc);
+		add(lb);
+		++gc.gridy;
+		gb.setConstraints(pun_vu, gc);
+		add(pun_vu);
+		++gc.gridy;
+		lb = new JLabel("Reader:");
+		lb.setOpaque(true);
+		lb.setPreferredSize(new Dimension(120, 20));
+		gb.setConstraints(lb, gc);
+		add(lb);
+		++gc.gridy;
+		gb.setConstraints(rdr_vu, gc);
+		add(rdr_vu);
+		gc.gridy = 0;
+		++gc.gridx;
+		JPanel pan = new JPanel();
+		pan.setPreferredSize(new Dimension(10, 10));
+		pan.setOpaque(false);
+		gb.setConstraints(pan, gc);
+		add(pan);
+		++gc.gridx;
+		gc.gridheight = 4;
+		gb.setConstraints(scroll, gc);
+		add(scroll);
+		++gc.gridx;
+		pan = new JPanel();
+		pan.setPreferredSize(new Dimension(10, 10));
+		pan.setOpaque(false);
+		gb.setConstraints(pan, gc);
+		add(pan);
 	}
 
 	private void setupFont(Font f) {
@@ -469,7 +528,47 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		rdr_cnt.setText(String.format("%4d", ++rdr_bytes));
 	}
 
+	private void updateRdrView(long newIdx) {
+		long pos = newIdx - rdr_vu.buf;
+		int _beg = 0;
+		int _end = rdr_vu.win;
+
+		if (newIdx == rdr_idx) {
+			return;
+		}
+		if (pos < 0) {
+			_beg = (int)-pos;
+			pos = 0;
+		}
+		if (pos + (_end - _beg) > rdr_tot) {
+			_end = (int)(_beg + (rdr_tot - pos));
+		}
+		try {
+			rdr_in.seek(pos);
+			rdr_in.read(rdr_vu.tapeBuf, _beg, _end - _beg);
+			rdr_idx = newIdx;
+			rdr_vu.update(_beg, _end);
+			rdr_vu.repaint();
+		} catch (Exception ee) {}
+	}
+
+	private int popRdrChar() {
+		if (rdr_idx >= rdr_tot) {
+			return -1;
+		}
+		int c = rdr_vu.tapeBuf[rdr_vu.buf]; // 'buf' only valid for !top
+		// advance tape...
+		updateRdrView(rdr_idx + 1);
+		return c;
+	}
+
 	public int rdrGetChar() {
+		if (rdr_in == null) {
+			return -1;
+		}
+		if (rdr_vu != null) {
+			return popRdrChar();
+		}
 		try {
 			return rdr_in.read(); // may also be -1
 		} catch (Exception ee) {
@@ -477,26 +576,41 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		}
 	}
 
-	private void punChar(int c) {
-		if (pun_out != null && pun.isSelected()) {
-			try {
-				pun_out.write(c);
-				pun_cnt.setText(String.format("%4d", ++pun_bytes));
-			} catch (Exception ee) {}
+	private void pushPunChar(int c) {
+		pun_vu.tapeBuf[pun_vu.win - 1] = (byte)c;
+		for (int x = 0; x < pun_vu.win - 1; ++x) {
+			pun_vu.tapeBuf[x] = pun_vu.tapeBuf[x + 1];
 		}
+		pun_vu.tapeBuf[pun_vu.win - 1] = (byte)0;
+		if (pun_vu.beg > 0) {
+			pun_vu.update(pun_vu.beg - 1, pun_vu.end);
+		}
+		pun_vu.repaint();
+	}
+
+	// TODO: update pun_vu
+	private void punChar(int c) {
+		if (pun_out == null || !pun.isSelected()) {
+			return;
+		}
+		if (pun_vu != null) {
+			pushPunChar(c);
+		}
+		try {
+			pun_out.write(c);
+			pun_cnt.setText(String.format("%4d", ++pun_bytes));
+		} catch (Exception ee) {}
 	}
 
 	private void ctrlChar(int c) {
 		if (c == rdr_adv_char) {
 			// special char to implement TTY paper tape read 1 char
 			if (rdr_in != null && rdr.isSelected()) {
-				try {
-					int rc = rdr_in.read();
-					if (rc >= 0) {
-						rdrCountOne();
-						typeChar(rc);
-					}
-				} catch (Exception ee) {}
+				int rc = rdrGetChar();
+				if (rc >= 0) {
+					rdrCountOne();
+					typeChar(rc);
+				}
 			}
 			return;
 		}
@@ -769,6 +883,10 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			if (pun_out != null) try {
 				pun_out.close();
 			} catch (Exception ee) {}
+			if (pun_vu != null) {
+				pun_vu.update(0, 0);
+				pun_vu.repaint();
+			}
 			pun_cnt.setText("    ");
 			pun_bytes = 0;
 			pun_mi.setText("Punch");
@@ -785,6 +903,10 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 				pun.setEnabled(true);
 				pun_cnt.setText("   0");
 				pun_bytes = 0;
+				if (pun_vu != null) {
+					pun_vu.update(pun_vu.win - 1, pun_vu.win);
+					pun_vu.repaint();
+				}
 			} catch (Exception ee) {
 				System.err.println(ee.getMessage());
 			}
@@ -794,6 +916,10 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			if (rdr_in != null) try {
 				rdr_in.close();
 			} catch (Exception ee) {}
+			if (rdr_vu != null) {
+				rdr_vu.update(0, 0);
+				rdr_vu.repaint();
+			}
 			rdr_cnt.setText("    ");
 			rdr_bytes = 0;
 			rdr_mi.setText("Reader");
@@ -813,6 +939,12 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 				rdr_bytes = 0;
 				rdr.setEnabled(true);
 				rdr_pos.setEnabled(true);
+				if (rdr_vu != null) {
+					rdr_idx = -1;
+					rdr_tot = rdr_in.length();
+					updateRdrView(0);
+					rdr_vu.repaint();
+				}
 			} catch (Exception ee) {
 				System.err.println(ee.getMessage());
 			}
@@ -825,6 +957,12 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			rdrStop(); // just in case
 			rdr.setSelected(false);
 			rdr_start.setEnabled(false);
+			if (rdr_vu != null) {
+				// file pointer is out-of-position
+				try {
+					rdr_in.seek(rdr_idx);
+				} catch (Exception ee) {}
+			}
 			JFrame jf = new PaperTapePositioner(this, rdr_in, 8, this);
 			// cannot use reader until this finishes...
 			rdr_busy = true;
@@ -850,5 +988,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		} catch (Exception ee) {}
 		rdr_cnt.setText(String.format("%4d", rdr_bytes));
 		rdr_busy = false;
+		if (rdr_vu != null) {
+			updateRdrView(rdr_bytes);
+		}
 	}
 }
