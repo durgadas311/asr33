@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Douglas Miller <durgadas311@gmail.com>
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Semaphore;
 import java.awt.*;
@@ -27,6 +29,9 @@ public class ASR33tty implements TermContainer {
 	private static final int OPTION_CANCEL = 0;
 	private static final int OPTION_YES = 1;
 
+	List<String> boolArgs = Arrays.asList();
+	String[] seqArgs = new String[]{ "tty", "baud" };
+
 	public ASR33tty(String[] args) {
 		// Args may be prop=value expressions.
 		// Other args are tty and optional baud...
@@ -44,36 +49,20 @@ public class ASR33tty implements TermContainer {
 	
 		String s;
 		// Turn everything into properties...
-		for (String arg : args) {
-			if (arg.indexOf("=") >= 0) {
-				String[] ss = arg.split("=", 2);
-				props.setProperty("asr33_" + ss[0], ss[1]);
-			} else if (tty == null) {
-				tty = arg;
-			} else if (baud <= 0) {
-				baud = Integer.decode(arg);
-			}
+		ASR33.processArgs(props, args, boolArgs, seqArgs);
+		s = props.getProperty("asr33_tty");
+		if (s != null) {
+			tty = s;
 		}
-		if (tty == null) {
-			s = props.getProperty("asr33_tty");
-			if (s != null) {
-				tty = s;
-			}
-		}
-		if (baud <= 0) {
-			s = props.getProperty("asr33_baud");
-			if (s != null) {
-				baud = Integer.decode(s);
-			} else {
-				baud = 9600;
-			}
+		s = props.getProperty("asr33_baud");
+		if (s != null) {
+			baud = Integer.decode(s);
+		} else {
+			baud = 9600;
 		}
 		if (tty == null) {
 			System.err.format("Usage: ASR33tty tty [baud]\n");
 			System.exit(1);
-		}
-		if (baud <= 0) {
-			baud = 9600;
 		}
 		comm = getPort(tty, baud);
 		if (comm == null) {

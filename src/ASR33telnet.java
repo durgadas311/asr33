@@ -1,5 +1,7 @@
 // Copyright (c) 2025 Douglas Miller <durgadas311@gmail.com>
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Semaphore;
 import java.awt.*;
@@ -26,6 +28,9 @@ public class ASR33telnet implements TermContainer, Runnable {
 	private static final int OPTION_CANCEL = 0;
 	private static final int OPTION_YES = 1;
 
+	List<String> boolArgs = Arrays.asList("server");
+	String[] seqArgs = new String[]{ "host", "port" };
+
 	public ASR33telnet(String[] args) {
 		// Args may be prop=value expressions.
 		// Other args are host and optional port...
@@ -42,29 +47,17 @@ public class ASR33telnet implements TermContainer, Runnable {
 		}
 	
 		String s;
-		for (String arg : args) {
-			if (arg.indexOf("=") >= 0) {
-				String[] ss = arg.split("=", 2);
-				props.setProperty("asr33_" + ss[0], ss[1]);
-			} else if (host == null) {
-				host = arg;
-			} else if (port <= 0) {
-				port = Integer.decode(arg);
-			}
+		ASR33.processArgs(props, args, boolArgs, seqArgs);
+		// all recognized args are now properties...
+		s = props.getProperty("asr33_host");
+		if (s != null) {
+			host = s;
 		}
-		if (host == null) {
-			s = props.getProperty("asr33_host");
-			if (s != null) {
-				host = s;
-			}
-		}
-		if (port <= 0) {
-			s = props.getProperty("asr33_port");
-			if (s != null) {
-				port = Integer.decode(s);
-			} else {
-				port = 23;	// standard telnet port
-			}
+		s = props.getProperty("asr33_port");
+		if (s != null) {
+			port = Integer.decode(s);
+		} else {
+			port = 23;	// standard telnet port
 		}
 		if (host == null) {
 			System.err.format("Usage: ASR33telnet host [port]\n");

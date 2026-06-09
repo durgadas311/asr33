@@ -3,6 +3,7 @@
 import java.io.*;
 import java.util.Properties;
 import java.util.Arrays;
+import java.util.List;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
@@ -86,6 +87,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	boolean even;
 	boolean col72_bell;
 	int lines;
+	static List<String> bools = Arrays.asList("live_ppt");
 
 	public static String getConfig(String[] args) {
 		String rc = System.getenv("ASR33_CONFIG");
@@ -99,6 +101,21 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			rc = System.getProperty("user.home") + "/.asr33rc";
 		}
 		return rc;
+	}
+
+	public static void processArgs(Properties props, String[] args,
+					List<String> _bools, String[] seq) {
+		int x = 0;
+		for (String arg : args) {
+			if (arg.indexOf("=") > 0) {
+				String[] ss = arg.split("=", 2);
+				props.setProperty("asr33_" + ss[0], ss[1]);
+			} else if (bools.contains(arg) || _bools.contains(arg)) {
+				props.setProperty("asr33_" + arg, "true");
+			} else if (x < seq.length) {
+				props.setProperty("asr33_" + seq[x++], arg);
+			}
+		}
 	}
 
 	public ASR33(Properties props, TermContainer fe) {
