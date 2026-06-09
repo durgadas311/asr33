@@ -20,12 +20,13 @@ CORE_CLASS = ASR33.class \
 	TermContainer.class \
 	RdrContainer.class \
 	PaperTapePositioner.class \
+	PaperTapeViewer.class \
 	Bell.class \
 	Paster.class \
 	Typer.class
 
 # These are non-shared classes - are required for plugin
-SUB_CLASS = 'PaperTapePositioner$$PaperTape.class'
+SUB_CLASS =
 
 JARS = ASR33telnet.jar ASR33tty.jar ASR33plugin.jar
 
