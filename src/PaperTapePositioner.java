@@ -39,7 +39,6 @@ public class PaperTapePositioner extends JFrame
 		}
 		addWindowListener(this);
 		addWindowListener(lstr);
-		// TODO: allow save/cancel?
 		this.tape = tape;
 		try {
 			savedFP = tape.getFilePointer();

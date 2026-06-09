@@ -58,7 +58,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	JMenuItem pun_mi;
 	JMenuItem rdr_mi;
 	JMenuItem rdr_pos;
-	OutputStream pun_out;
+	JMenuItem pun_vwr;
+	RandomAccessFile pun_out;
 	RandomAccessFile rdr_in;
 	PaperTapeViewer rdr_vu;
 	long rdr_idx;
@@ -241,9 +242,15 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		mi.setActionCommand(".");
 		mu.add(mi);
 		rdr_pos = mi;
+		mi = new JMenuItem("Pun Viewer", KeyEvent.VK_Y);
+		mi.addActionListener(this);
+		mi.setActionCommand(".");
+		mu.add(mi);
+		pun_vwr = mi;
 		mb.add(mu);
 		fe.addMenus(mb, main, this);
 		rdr_pos.setEnabled(false); // until tape in reader...
+		pun_vwr.setEnabled(false); // until tape in punch...
 
 		JPanel pn = new JPanel();
 		pn.setPreferredSize(new Dimension(5, 30));
@@ -892,17 +899,19 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			pun_mi.setText("Punch");
 			pun_out = null;
 			pun.setSelected(false);
+			pun_vwr.setEnabled(false);
 			pun.setEnabled(false);
 			File file = pickFile("Punch");
 			if (file == null) {
 				return;
 			}
 			try {
-				pun_out = new FileOutputStream(file);
+				pun_out = new RandomAccessFile(file, "rw");
 				pun_mi.setText("Punch - " + file.getName());
 				pun.setEnabled(true);
 				pun_cnt.setText("   0");
 				pun_bytes = 0;
+				pun_vwr.setEnabled(true);
 				if (pun_vu != null) {
 					pun_vu.update(pun_vu.win - 1, pun_vu.win);
 					pun_vu.repaint();
@@ -966,6 +975,19 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			JFrame jf = new PaperTapePositioner(this, rdr_in, 8, this);
 			// cannot use reader until this finishes...
 			rdr_busy = true;
+		}
+		if (m.getMnemonic() == KeyEvent.VK_Y) {
+			if (pun_out == null) {
+				return;
+			}
+			// TODO: anything to halt punch?
+			// Don't disable punch, see how it goes.
+			//pun.setSelected(false);
+			if (pun_vu != null) {
+				// file pointer is out-of-position?
+			}
+			JFrame jf = new PaperTapePositioner(this, pun_out, 8, this,
+					"PTP", true, true);
 		}
 		if (m.getMnemonic() == KeyEvent.VK_H) {
 			if (_help != null) {
