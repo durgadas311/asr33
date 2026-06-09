@@ -40,7 +40,7 @@ class PaperTapeViewer extends JPanel {
 		} else {
 			curs = buf * cell;
 		}
-		marg = 20;	// total horiz margins (10+10)
+		marg = 2 * cell;	// 2x total horiz margins
 		m = marg / 2 + cell - data / 2;
 		setPreferredSize(new Dimension(tapew + marg, tapeh));
 		setBackground(Color.gray);
@@ -70,6 +70,9 @@ class PaperTapeViewer extends JPanel {
 	// 'top' true to place cursor at top, for punch.
 	public PaperTapeViewer(int zone, int size, boolean top, boolean noTail) {
 		super();
+		if (size <= 0) {
+			size = 150;
+		}
 		setup(zone, size, top, noTail);
 	}
 

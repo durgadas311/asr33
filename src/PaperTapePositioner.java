@@ -15,22 +15,25 @@ public class PaperTapePositioner extends JFrame
 	int idx;
 	int tot;
 	boolean noSeek;
+	boolean top;
 
 	public PaperTapePositioner(WindowListener lstr, RandomAccessFile tape, int zone,
 				Component friend) {
 		super("PTR");
-		setup(lstr, tape, zone, friend, false, false);
+		setup(lstr, tape, zone, friend, false, false, false);
 	}
 
 	public PaperTapePositioner(WindowListener lstr, RandomAccessFile tape, int zone,
-			Component friend, String name, boolean noSeek, boolean noTail) {
+			Component friend, String name,
+			boolean noSeek, boolean noTail, boolean top) {
 		super(name);
-		setup(lstr, tape, zone, friend, noSeek, noTail);
+		setup(lstr, tape, zone, friend, noSeek, noTail, top);
 	}
 
 	private void setup(WindowListener lstr, RandomAccessFile tape, int zone,
-			Component friend, boolean noSeek, boolean noTail) {
+			Component friend, boolean noSeek, boolean noTail, boolean top) {
 		this.noSeek = noSeek;
+		this.top = top;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // ...or live view?
 		setResizable(false);
 		setLocationByPlatform(true);
@@ -49,7 +52,10 @@ public class PaperTapePositioner extends JFrame
 			System.exit(1);
 		}
 		idx = -1;	// never equals savedFP
-		ptv = new PaperTapeViewer(zone, noTail);
+		ptv = new PaperTapeViewer(zone, -1, top, noTail);
+		if (top) {
+			ptv.update(ptv.win - 1, ptv.win);
+		}
 		add(ptv);
 		addKeyListener(this);
 		addMouseWheelListener(this);
@@ -66,6 +72,9 @@ public class PaperTapePositioner extends JFrame
 
 		if (newIdx == idx) {
 			return;
+		}
+		if (top) {
+			pos -= ptv.buf;
 		}
 		if (pos < 0) {
 			_beg = -pos;

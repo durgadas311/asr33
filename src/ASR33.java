@@ -990,7 +990,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 				// file pointer is out-of-position?
 			}
 			JFrame jf = new PaperTapePositioner(this, pun_out, 8, this,
-					"PTP", true, true);
+					"PTP", true, true, true);
 		}
 		if (m.getMnemonic() == KeyEvent.VK_H) {
 			if (_help != null) {
