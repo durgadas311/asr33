@@ -61,7 +61,10 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	JMenuItem rdr_pos;
 	JMenuItem pun_vwr;
 	RandomAccessFile pun_out;
+	File pun_fi;
 	RandomAccessFile rdr_in;
+	File rdr_fi;
+	boolean pun_rdr_same;
 	PaperTapeViewer rdr_vu;
 	long rdr_idx;
 	long rdr_tot;
@@ -579,6 +582,13 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	}
 
 	private int popRdrChar() {
+		if (pun_rdr_same) {
+			// This is needed to make a perpentual punch-reader
+			// loop work (in live view).
+			try {
+				rdr_tot = rdr_in.length();
+			} catch (Exception ee) {}
+		}
 		if (rdr_idx >= rdr_tot) {
 			return -1;
 		}
@@ -844,6 +854,15 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	public void mouseDragged(MouseEvent e) { }
 	public void mouseMoved(MouseEvent e) { }
 
+	private boolean sameFile(File a, File b) {
+		if (a == null || b == null) return false;
+		try {
+			return a.getCanonicalPath().equals(b.getCanonicalPath());
+		} catch (Exception ee) {
+			return false;
+		}
+	}
+
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() instanceof JButton) {
 			if (e.getSource() == rdr_start) {
@@ -917,6 +936,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			pun_bytes = 0;
 			pun_mi.setText("Punch");
 			pun_out = null;
+			pun_fi = null;
+			pun_rdr_same = false;
 			pun.setSelected(false);
 			pun_vwr.setEnabled(false);
 			pun.setEnabled(false);
@@ -926,6 +947,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			}
 			try {
 				pun_out = new RandomAccessFile(file, "rw");
+				pun_fi = file;
+				pun_rdr_same = sameFile(pun_fi, rdr_fi);
 				pun_out.setLength(0);
 				pun_mi.setText("Punch - " + file.getName());
 				pun.setEnabled(true);
@@ -953,6 +976,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			rdr_bytes = 0;
 			rdr_mi.setText("Reader");
 			rdr_in = null;
+			rdr_fi = null;
+			pun_rdr_same = false;
 			rdr.setSelected(false);
 			rdr.setEnabled(false);
 			rdr_pos.setEnabled(false);
@@ -963,6 +988,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			}
 			try {
 				rdr_in = new RandomAccessFile(file, "r");
+				rdr_fi = file;
+				pun_rdr_same = sameFile(pun_fi, rdr_fi);
 				rdr_mi.setText("Reader - " + file.getName());
 				rdr_cnt.setText("   0");
 				rdr_bytes = 0;
