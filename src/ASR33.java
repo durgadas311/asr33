@@ -89,6 +89,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	boolean parity;
 	boolean even;
 	boolean col72_bell;
+	boolean eol_bell;
 	int lines;
 	static List<String> bools = Arrays.asList("live_ppt");
 
@@ -178,6 +179,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		parity = false;
 		even = false;	// default to SPACE if no parity
 		col72_bell = true;
+		eol_bell = true;
 		s = props.getProperty("asr33_auto_nl"); // "wrap" at EOL
 		if (s != null) auto_nl = ExtBoolean.parseBoolean(s);
 		s = props.getProperty("asr33_auto_rdr"); // reader via DC1/DC3
@@ -199,12 +201,14 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		if (s != null) even = ExtBoolean.parseBoolean(s);
 		s = props.getProperty("asr33_col72_bell");
 		if (s != null) col72_bell = ExtBoolean.parseBoolean(s);
+		s = props.getProperty("asr33_eol_bell");
+		if (s != null) eol_bell = ExtBoolean.parseBoolean(s);
 
 		java.net.URL url;
 		url = this.getClass().getResource("doc/help.html");
 		_help = new GenericHelp("ASR33 Teletype Help", url);
 
-		text = new JTextArea(lines, 81); // a little wider for breathing room
+		text = new JTextArea(lines, 75); // a little wider for breathing room
 		text.setEditable(false); // this prevents caret... grrr.
 		text.setBackground(Color.white);
 		Font fnt = new Font("Monospaced", Font.PLAIN, 12);
@@ -517,7 +521,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			text.append(s);
 			++eol;
 		}
-		if (col < 79) {
+		// Physical end of line is column 74 (0..73)
+		if (col < 73) {
 			++carr;
 			++col;
 		} else if (auto_nl) {
@@ -529,7 +534,10 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		} else {
 			// stay where we are
 		}
-		if (col72_bell && col == 73) {
+		if (col72_bell && col == 71) {
+			bell.ding();
+		}
+		if (eol_bell && col == 73) {
 			bell.ding();
 		}
 		text.setCaretPosition(carr);
