@@ -44,15 +44,15 @@ jar: $(JARS)
 
 ASR33telnet.jar: ASR33telnet.class $(CORE_CLASS) $(SIM_CLASS) $(AUXS)
 	echo "Main-Class: ASR33telnet" >Manifest.txt
-	jar -cmf Manifest.txt $@ $^ $(SUB_CLASS)
+	jar -cmf Manifest.txt $@ $^ $(SUB_CLASS) icons/*.png
 
 ASR33tty.jar: ASR33tty.class $(CORE_CLASS) $(SIM_CLASS) $(AUXS) $(JSERIAL)
 	echo "Main-Class: ASR33tty" >Manifest.txt
-	jar -cmf Manifest.txt $@ $^ $(SUB_CLASS)
+	jar -cmf Manifest.txt $@ $^ $(SUB_CLASS) icons/*.png
 
 # Need to exclude ASR33telnet.class...
 ASR33plugin.jar: $(CORE_CLASS) $(AUXS)
-	jar -cMf $@ $^ $(SUB_CLASS)
+	jar -cMf $@ $^ $(SUB_CLASS) icons/*.png
 
 ship: jar
 	cp $(JARS) ..

@@ -46,6 +46,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	File _last = null;
 	GenericHelp _help;
 
+	ImageIcon checked;
+	ImageIcon unchecked;
 	JCheckBox local;
 	JCheckBox noprt;
 	JCheckBox pun;
@@ -56,6 +58,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	boolean rdr_busy;
 	JLabel rdr_cnt;
 	int rdr_bytes;
+	JMenuItem tear_off;
+	JMenuItem save_mi;
 	JMenuItem pun_mi;
 	JMenuItem rdr_mi;
 	JMenuItem rdr_pos;
@@ -227,6 +231,10 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			setLayout(new BorderLayout()); // allow resizing
 			add(scroll, BorderLayout.CENTER); // allow resizing
 		}
+		url = this.getClass().getResource("icons/unchecked.png");
+		unchecked = new ImageIcon(url);
+		url = this.getClass().getResource("icons/checked4.png");
+		checked = new ImageIcon(url);
 
 		JMenuBar mb = new JMenuBar();
 		JMenu mu = new JMenu("Print");
@@ -245,10 +253,12 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		mi.addActionListener(this);
 		mi.setActionCommand(".");
 		mu.add(mi);
+		save_mi = mi;
 		mi = new JMenuItem("Tear Off", KeyEvent.VK_T);
 		mi.addActionListener(this);
 		mi.setActionCommand(".");
 		mu.add(mi);
+		tear_off = mi;
 		mb.add(mu);
 		mu = new JMenu("PTape");
 		mi = new JMenuItem("Punch", KeyEvent.VK_P);
@@ -293,6 +303,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		// this must always exist, just maybe not visible
 		noprt = new JCheckBox("NPRINT");
 		noprt.setFocusable(false);
+		noprt.setIcon(unchecked);
+		noprt.setSelectedIcon(checked);
 		noprt.setOpaque(false);
 		if (nonprint) {
 			mb.add(noprt);
@@ -303,6 +315,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		}
 		local = new JCheckBox("LOCAL");
 		local.setFocusable(false);
+		local.setIcon(unchecked);
+		local.setSelectedIcon(checked);
 		//local.addActionListener(this);
 		local.setOpaque(false);
 		mb.add(local);
@@ -312,6 +326,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		mb.add(pn);
 		pun = new JCheckBox("PUNCH");
 		pun.setFocusable(false);
+		pun.setIcon(unchecked);
+		pun.setSelectedIcon(checked);
 		//pun.addActionListener(this);
 		pun.setEnabled(false);
 		pun.setOpaque(false);
@@ -326,6 +342,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		mb.add(pn);
 		rdr = new JCheckBox("READER");
 		rdr.setFocusable(false);
+		rdr.setIcon(unchecked);
+		rdr.setSelectedIcon(checked);
 		rdr.addActionListener(this);
 		rdr.setEnabled(false);
 		rdr.setOpaque(false);
@@ -374,10 +392,12 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		gc.gridwidth = 1;
 		gc.gridheight = 1;
 		gc.anchor = GridBagConstraints.CENTER;
-		int vu_wid = 80;
-		int vu_hei = 10;
-		pun_vu = new PaperTapeViewer(vu_hei, vu_wid, true, false);
-		rdr_vu = new PaperTapeViewer(vu_hei, vu_wid, false, false);
+		int vu_wid = 60;
+		int vu_hei = 13;
+		pun_vu = new PaperTapeViewer(vu_hei, vu_wid, true);
+		pun_vu.addMouseListener(this);
+		rdr_vu = new PaperTapeViewer(vu_hei, vu_wid, false);
+		rdr_vu.addMouseListener(this);
 		JLabel lb = new JLabel("Punch:");
 		lb.setOpaque(true);
 		lb.setPreferredSize(new Dimension(vu_wid + pun_vu.marg, 20));
@@ -850,10 +870,42 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 	}
 
 	public void mouseClicked(MouseEvent e) {
-		if (e.getButton() != MouseEvent.BUTTON2) {
+		Object s = e.getSource();
+		boolean shift = ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0);
+		if (s.equals(text)) {
+			if (shift && e.getButton() == MouseEvent.BUTTON3) {
+				e.consume();
+				tear_off.doClick();
+			} else if (e.getButton() == MouseEvent.BUTTON2) {
+				e.consume();
+				pasteToTty();
+			} else if (shift && e.getButton() == MouseEvent.BUTTON1) {
+				e.consume();
+				save_mi.doClick();
+			}
 			return;
 		}
-		pasteToTty();
+		if (s.equals(rdr_vu)) {
+			if (shift && e.getButton() == MouseEvent.BUTTON3) {
+				e.consume();
+				rdr_pos.doClick();
+			} else if (shift && e.getButton() == MouseEvent.BUTTON1) {
+				e.consume();
+				rdr_mi.doClick();
+			}
+			return;
+		}
+		if (s.equals(pun_vu)) {
+			if (shift && e.getButton() == MouseEvent.BUTTON3) {
+				e.consume();
+				pun_vwr.doClick();
+			} else if (shift && e.getButton() == MouseEvent.BUTTON1) {
+				e.consume();
+				pun_mi.doClick();
+			}
+			return;
+		}
+		// unhandled source...
 	}
 	public void mouseEntered(MouseEvent e) { }
 	public void mouseExited(MouseEvent e) { }
@@ -869,6 +921,26 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 		} catch (Exception ee) {
 			return false;
 		}
+	}
+
+	private void makeRdrEmpty() {
+		if (rdr_in != null) try {
+			rdr_in.close();
+		} catch (Exception ee) {}
+		if (rdr_vu != null) {
+			rdr_vu.update(0, 0);
+			rdr_vu.repaint();
+		}
+		rdr_cnt.setText("    ");
+		rdr_bytes = 0;
+		rdr_mi.setText("Reader");
+		rdr_in = null;
+		rdr_fi = null;
+		pun_rdr_same = false;
+		rdr.setSelected(false);
+		rdr.setEnabled(false);
+		rdr_pos.setEnabled(false);
+		rdr_start.setEnabled(false);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -940,6 +1012,12 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 				pun_vu.update(0, 0);
 				pun_vu.repaint();
 			}
+			if (pun_rdr_same) {
+				// make certain last char(s) are seen
+				try {
+					rdr_tot = rdr_in.length();
+				} catch (Exception ee) {}
+			}
 			pun_cnt.setText("    ");
 			pun_bytes = 0;
 			pun_mi.setText("Punch");
@@ -958,6 +1036,11 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 				pun_fi = file;
 				pun_rdr_same = sameFile(pun_fi, rdr_fi);
 				pun_out.setLength(0);
+				if (pun_rdr_same) {
+					// we just wiped-out the reader's file...
+					// best guess, make it empty.
+					makeRdrEmpty();
+				}
 				pun_mi.setText("Punch - " + file.getName());
 				pun.setEnabled(true);
 				pun_cnt.setText("   0");
@@ -973,23 +1056,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			return;
 		}
 		if (m.getMnemonic() == KeyEvent.VK_R) {
-			if (rdr_in != null) try {
-				rdr_in.close();
-			} catch (Exception ee) {}
-			if (rdr_vu != null) {
-				rdr_vu.update(0, 0);
-				rdr_vu.repaint();
-			}
-			rdr_cnt.setText("    ");
-			rdr_bytes = 0;
-			rdr_mi.setText("Reader");
-			rdr_in = null;
-			rdr_fi = null;
-			pun_rdr_same = false;
-			rdr.setSelected(false);
-			rdr.setEnabled(false);
-			rdr_pos.setEnabled(false);
-			rdr_start.setEnabled(false);
+			makeRdrEmpty();
 			File file = pickFile("Reader");
 			if (file == null) {
 				return;
@@ -1030,6 +1097,7 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 			JFrame jf = new PaperTapePositioner(this, rdr_in, 8, this);
 			// cannot use reader until this finishes...
 			rdr_busy = true;
+			return;
 		}
 		if (m.getMnemonic() == KeyEvent.VK_Y) {
 			if (pun_out == null) {
@@ -1042,7 +1110,8 @@ public class ASR33 extends JFrame implements Typer, RdrContainer,
 				// file pointer is out-of-position?
 			}
 			JFrame jf = new PaperTapePositioner(this, pun_out, 8, this,
-					"PTP", true, true, true);
+					"PTP", true);
+			return;
 		}
 		if (m.getMnemonic() == KeyEvent.VK_H) {
 			if (_help != null) {
