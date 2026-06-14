@@ -17,11 +17,13 @@ class BlockCaret extends DefaultCaret {
 		fh = h;
 	}
 
+	// Ignore idea of Dot, always paint cursor at end of text
+	// (as recorded by "Typer").
 	public void paint(Graphics g) {
 		JTextComponent comp = getComponent();
 		Rectangle2D r = null;
 		try {
-			r = comp.modelToView2D(getDot());
+			r = comp.modelToView2D(type.getCarr());
 		} catch(Exception ee) { }
 		if (r == null) return;
 		int x = (int)r.getX();
@@ -29,16 +31,4 @@ class BlockCaret extends DefaultCaret {
 		g.setColor(shadow);
 		g.fillRect(x, y, fw - 1, fh);
 	}
-
-	@Override
-	public void setDot(int dot, Position.Bias dotBias) {
-		// prevent cursor keys from changing caret
-		int carr = type.getCarr();
-		if (dot < carr) return;
-		super.setDot(dot, dotBias);
-	}
-
-	// prevent mouse from changing caret
-	@Override
-	protected void positionCaret(MouseEvent e) { }
-};
+}
